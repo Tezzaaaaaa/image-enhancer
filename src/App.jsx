@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Download, Image as ImageIcon, RotateCcw, Sparkles, Upload } from 'lucide-react'
 import './App.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8787'
+
 function App() {
   const [image, setImage] = useState(null)
   const [resultUrl, setResultUrl] = useState(null)
@@ -32,7 +34,7 @@ function App() {
     setProcessing(true)
     setError('')
     try {
-      const response = await fetch('/api/enhance', {
+      const response = await fetch(`${API_URL}/api/enhance`, {
         method: 'POST',
         headers: { 'Content-Type': image.file.type },
         body: image.file,
