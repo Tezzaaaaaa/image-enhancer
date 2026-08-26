@@ -1,0 +1,11 @@
+{
+  "name": "image-enhancer-engine",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test-analysis": "node test-analysis.js"
+  },
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
+}
