@@ -85,9 +85,9 @@ npm run lint
 
 ## GitHub Pages deployment
 
-The repository includes `.github/workflows/pages.yml`, which builds the Vite application and deploys `dist/` to GitHub Pages on every push to `main`. GitHub's current Pages workflow uses `actions/configure-pages@v5`, `actions/upload-pages-artifact@v4`, and `actions/deploy-pages@v5`. citeturn0search1turn0search4
+The repository includes `.github/workflows/pages.yml`, which builds the Vite application and deploys `dist/` to GitHub Pages on every push to `main`.
 
-In the repository settings, GitHub Pages must use **GitHub Actions** as its publishing source. citeturn0search3
+In the repository settings, GitHub Pages must use **GitHub Actions** as its publishing source.
 
 ## Repository
 
