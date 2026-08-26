@@ -1,55 +1,41 @@
 # Image Enhancer
 
-A modern React + Vite image enhancement workspace designed to analyse an image, classify its characteristics, and automatically select an appropriate enhancement pipeline.
+A modern React + Vite image enhancement workspace for analysing, improving and exporting PNG, JPEG and WebP images.
 
-## Overview
+## Demo
 
-Image Enhancer provides a simple workflow for preparing images for intelligent processing:
+**Try the live browser demo:**
 
-1. Upload a PNG, JPEG, or WebP image.
-2. Analyse the image dimensions, format, size, aspect ratio, pixel count, megapixels, and alpha-channel capability.
-3. Classify the image based on its resolution and aspect ratio.
-4. Automatically select an enhancement pipeline.
-5. Review the detected image information in the workspace.
+https://tezzaaaaaa.github.io/image-enhancer/
 
-The current implementation focuses on the analysis and pipeline-routing foundation. The enhancement and export controls are present in the interface but are not yet connected to a final image-processing/export operation.
+The demo runs the enhancement directly in the browser. Images are not uploaded to a remote processing service.
 
-## Pipeline Routing
+## What it does
 
-The router currently supports three explicit processing modes:
+1. Upload a PNG, JPEG or WebP image up to 25 MB.
+2. Analyse dimensions, pixel count, aspect ratio, megapixels, format, size and image category.
+3. Apply a conservative enhancement pass locally in the browser.
+4. Review the processing report.
+5. Export the enhanced result as a PNG.
 
-- **Faithful** — preserves the source image characteristics.
-- **Restore** — intended for restoration and lower-resolution sources.
-- **Forensic** — reserved for forensic-oriented processing.
-- **Auto** — selects a pipeline from the image analysis. Low-resolution images are routed to `restore`; other images currently default to `faithful`.
+The browser demo is deliberately self-contained so GitHub Pages can host a functional version without requiring a separate API server.
 
-## Image Analysis
+## Processing
 
-The analyser currently detects:
+The current public demo uses a conservative client-side correction pass:
 
-- Width and height
-- Total pixel count
-- Aspect ratio
-- Megapixels
-- MIME type
-- File size
-- Alpha-channel capability
-- Image category
+- Exposure lift for darker sources
+- Mild contrast improvement
+- Resolution-aware adjustment
+- Lossless PNG export
 
-Images are currently classified as:
-
-| Category | Detection |
-| --- | --- |
-| `low-resolution` | Fewer than 500,000 pixels |
-| `wide-or-tall` | Aspect ratio above 1.8 or below 0.55 |
-| `high-resolution` | Width or height of at least 3,000 pixels |
-| `photograph` | Other images |
+The repository also contains a Node/Sharp processing engine under `backend/` for the fuller server-side restoration architecture.
 
 ## Tech Stack
 
 - React 19
 - Vite 8
-- JavaScript (ES modules)
+- JavaScript / ES modules
 - TensorFlow.js
 - ONNX Runtime Web
 - Sharp
@@ -58,22 +44,7 @@ Images are currently classified as:
 - Lucide React
 - ESLint
 
-## Project Structure
-
-```text
-image-enhancer/
-├── src/
-│   ├── engine/
-│   │   ├── analyzer.js
-│   │   ├── processor.js
-│   │   └── router.js
-│   ├── App.jsx
-│   └── App.css
-├── package.json
-└── README.md
-```
-
-## Getting Started
+## Local development
 
 ### Requirements
 
@@ -86,21 +57,21 @@ image-enhancer/
 npm install
 ```
 
-### Development
+### Run
 
 ```bash
 npm run dev
 ```
 
-Vite will start the local development server and provide the local URL in the terminal.
+This starts the Vite web application and the local Node processing service.
 
-### Production Build
+### Build
 
 ```bash
 npm run build
 ```
 
-### Preview the Production Build
+### Preview
 
 ```bash
 npm run preview
@@ -112,12 +83,18 @@ npm run preview
 npm run lint
 ```
 
-## Current Status
+## GitHub Pages deployment
 
-**Early development / foundation stage.**
+The repository includes `.github/workflows/pages.yml`, which builds the Vite application and deploys `dist/` to GitHub Pages on every push to `main`. GitHub's current Pages workflow uses `actions/configure-pages@v5`, `actions/upload-pages-artifact@v4`, and `actions/deploy-pages@v5`. citeturn0search1turn0search4
 
-The application shell, image upload flow, image analysis, classification, and pipeline selection are implemented. The actual enhancement engine and final export workflow remain to be connected.
+In the repository settings, GitHub Pages must use **GitHub Actions** as its publishing source. citeturn0search3
 
-## License
+## Repository
 
-No license has currently been specified for this repository.
+https://github.com/Tezzaaaaaa/image-enhancer
+
+## Status
+
+**Functional demo / active development.**
+
+The public demo is usable now. The server-side engine remains available for extending the project into a more advanced restoration and model-inference workflow.
