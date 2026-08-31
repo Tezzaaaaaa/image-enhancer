@@ -1,113 +1,128 @@
-import { useState } from 'react'
-import { Upload, Download, Sparkles, Image as ImageIcon } from 'lucide-react'
-import { processImage } from './engine/processor'
-import './App.css'
+import React, { useState, useRef, useCallback } from 'react';
+import './App.css';
+import { runEnhancement } from './engine/enhancer';
 
 function App() {
-  const [image, setImage] = useState(null)
-  const [analysis, setAnalysis] = useState(null)
-  const [processing, setProcessing] = useState(false)
+  const [originalImage, setOriginalImage] = useState(null);
+  const [enhancedImage, setEnhancedImage] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState('Idle');
+  const fileInputRef = useRef(null);
 
-  const handleUpload = async (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleImageUpload = useCallback((e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setOriginalImage(ev.target.result);
+      setEnhancedImage(null);
+      setStatus('Ready');
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
-    setProcessing(true)
+  const handleEnhance = useCallback(async () => {
+    if (!originalImage) return;
+    setProcessing(true);
+    setProgress(0);
+    setStatus('Enhancing...');
 
-    const result = await processImage(file)
+    const img = new Image();
+    img.src = originalImage;
+    await new Promise((resolve) => (img.onload = resolve));
 
-    setImage({
-      file,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    })
+    try {
+      const params = {};
+      const result = await runEnhancement(img, params, (prog) => {
+        setProgress(Math.round(prog * 100));
+      });
+      setEnhancedImage(result);
+      setStatus('Done!');
+      setProgress(100);
+    } catch (err) {
+      console.error(err);
+      setStatus('Error: ' + err.message);
+    } finally {
+      setProcessing(false);
+    }
+  }, [originalImage]);
 
-    setAnalysis(result)
-    setProcessing(false)
-  }
+  const handleDownload = () => {
+    if (!enhancedImage) return;
+    const link = document.createElement('a');
+    link.download = 'enhanced.png';
+    link.href = enhancedImage;
+    link.click();
+  };
+
+  const triggerFileInput = () => fileInputRef.current.click();
 
   return (
-    <main className="app">
-      <header className="header">
-        <div className="brand">
-          <Sparkles size={22} />
-          <span>Image Enhancer</span>
+    <div className="app">
+      {/* HEADER */}
+      <header className="app-header">
+        <div className="logo">
+          {/* Simple Sparkle SVG Icon */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="#FFD700"/>
+            <path d="M12 6L12.8 8.9L15.5 9.5L12.8 10.1L12 13L11.2 10.1L8.5 9.5L11.2 8.9L12 6Z" fill="#FFD700"/>
+          </svg>
+          <span>Enhancer</span>
         </div>
-
-        <button className="download" disabled={!image}>
-          <Download size={18} />
-          Export
-        </button>
+        <div className="actions">
+          <button onClick={triggerFileInput} disabled={processing}>
+            Upload Image
+          </button>
+          <button onClick={handleEnhance} disabled={!originalImage || processing}>
+            {processing ? `Processing ${progress}%` : 'Enhance'}
+          </button>
+          {enhancedImage && (
+            <button onClick={handleDownload}>Download PNG</button>
+          )}
+        </div>
       </header>
 
-      <section className="hero">
-        <h1>Enhance your images.</h1>
-        <p>
-          Intelligent image restoration designed to select the right
-          enhancement pipeline for every image.
-        </p>
-
-        {!image ? (
-          <label className="upload-card">
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleUpload}
-              hidden
-            />
-
-            <div className="upload-icon">
-              <Upload size={28} />
-            </div>
-
-            <strong>Drop an image here</strong>
-            <span>or click to browse</span>
-
-            <small>PNG, JPEG or WebP</small>
-          </label>
+      {/* DROP ZONE */}
+      <div className="drop-zone" onClick={triggerFileInput}>
+        {originalImage ? (
+          <img src={originalImage} alt="Original" style={{ maxHeight: '200px' }} />
         ) : (
-          <div className="workspace">
-            <div className="preview">
-              <img src={image.url} alt={image.name} />
-            </div>
+          <p>📤 Drag & drop an image here, or click to upload</p>
+        )}
+      </div>
 
-            <aside className="controls">
-              <div className="file-info">
-                <ImageIcon size={18} />
-                <strong>{image.name}</strong>
-              </div>
+      {/* PREVIEW GRID */}
+      <div className="preview-grid">
+        <div className="preview-box">
+          <h4>Original</h4>
+          {originalImage ? (
+            <img src={originalImage} alt="Original" />
+          ) : (
+            <div className="placeholder">No image loaded</div>
+          )}
+        </div>
+        <div className="preview-box">
+          <h4>Enhanced</h4>
+          {enhancedImage ? (
+            <img src={enhancedImage} alt="Enhanced" />
+          ) : (
+            <div className="placeholder">Enhancement result</div>
+          )}
+        </div>
+      </div>
 
-              {processing && (
-                <div className="status">
-                  Analysing image...
-                </div>
-              )}
-
-              {analysis && !processing && (
-                <div className="analysis">
-                  <span>Detected</span>
-                  <strong>{analysis.analysis.category}</strong>
-
-                  <span>Resolution</span>
-                  <strong>
-                    {analysis.analysis.width} × {analysis.analysis.height}
-                  </strong>
-
-                  <span>Pipeline</span>
-                  <strong>{analysis.pipeline}</strong>
-                </div>
-              )}
-
-              <button className="enhance" disabled={processing}>
-                <Sparkles size={18} />
-                Enhance image
-              </button>
-            </aside>
+      {/* STATUS BAR */}
+      <div className="status-bar">
+        <span>Status: {status}</span>
+        {processing && (
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
           </div>
         )}
-      </section>
-    </main>
-  )
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
